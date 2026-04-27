@@ -10,22 +10,29 @@
 ## Transformer架构
 ![Transformer架构](image.png)
 
-### 核心组件
-#### 多头注意力（muti-head attention）
-#### 前馈神经网络（FNN）
+## 核心组件
+### 自注意力（self attention）
+自注意力机制，在论文中被描述为Scaled Dot-Product Attention机制，它在继承原本注意力机制的Q,K,V矩阵的基础上，然Q,K,V矩阵都来自于数据自身，因此被称作自注意力机制。\
+$w_q, w_k, w_v$参数矩阵是Transformer模型中核心需要训练的参数矩阵，在每次训练的过程中，$w_q, w_k, w_v$参数矩阵先与输入的数据做矩阵相乘，以此得到$Query, Key和Value$矩阵，这些矩阵均来自于数据自身
+#### 计算
+注意力的公式为$Attention(Q,K,V) = softmax(\frac{Q  K^T}{\sqrt d_k}) V$ \
+在计算机中，除法是较为缓慢的，因此我们不妨将分母转换为$e^{-0.5 \times \ln d_k}$ \
+最终的计算公式为：$Attention(Q,K,V) = softmax(e^{-0.5 \times \ln d_k} Q  K^T ) V$
+
+### 前馈神经网络（FNN）
 前馈神经网络在Transformer模型中起到重要作用，也是最简单实现的一部分，它的作用主要是提取文本语义。该神经网络的结构十分简单，是一个含有两个2048维隐藏层的全连接前馈神经网络，输入与输出则均为512维。
 
 具体公式为：FFN(x) = max(0,xW1 +b1)W2 +b2
 
 其中max为ReLU激活函数，具体公式为max(0, x) 是一个非常简单的激活函数
 
-#### 位置编码（Positional Encoding）
+### 位置编码（Positional Encoding）
 位置编码用于让Transform模型了解token在语句中的位置，不同于RNN的循环结构，Transform架构自身并不具备了解token位置信息的能力，因此需要对词嵌入后的结果进行特殊的位置编码来实现联系上下文的能力。
 
 位置编码公式:  \
 ![alt text](image-1.png)\
 计算机计算除法的速度是比较慢的，因此利用数学中$a^b=e^{b\ln a}$可以将公式转化为\
-$pos\times e^{-2i/d_{model}\times ln{10000}}$
+$pos\times e^{-2i/d_{model}\times ln{10000}}$  
 
 # 启动项目
 ## 配置虚拟环境
