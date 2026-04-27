@@ -15,9 +15,37 @@
 自注意力机制，在论文中被描述为Scaled Dot-Product Attention机制，它在继承原本注意力机制的Q,K,V矩阵的基础上，然Q,K,V矩阵都来自于数据自身，因此被称作自注意力机制。\
 $w_q, w_k, w_v$参数矩阵是Transformer模型中核心需要训练的参数矩阵，在每次训练的过程中，$w_q, w_k, w_v$参数矩阵先与输入的数据做矩阵相乘，以此得到$Query, Key和Value$矩阵，这些矩阵均来自于数据自身
 #### 计算
-注意力的公式为$Attention(Q,K,V) = softmax(\frac{Q  K^T}{\sqrt d_k}) V$ \
+注意力的公式为\
+$Attention(Q,K,V) = softmax(\frac{Q  K^T}{\sqrt d_k}) V$ \
 在计算机中，除法是较为缓慢的，因此我们不妨将分母转换为$e^{-0.5 \times \ln d_k}$ \
-最终的计算公式为：$Attention(Q,K,V) = softmax(e^{-0.5 \times \ln d_k} Q  K^T ) V$
+最终的计算公式为：\
+$Attention(Q,K,V) = softmax(e^{-0.5 \times \ln d_k} Q  K^T ) V$
+
+### 多头注意力（MultiAttention）
+多头注意力机制是在单头自注意力机制的基础上，把大的$Q, K, V$矩阵依据头数拆分，进行更加精细化的训练。\
+本质上，多头注意力的$Q, K, V$矩阵仍旧是$d_model \times d_k$的矩阵，但是根据头数$heads$会拆分成$d_model \times heads \times head_{dim}$的矩阵\
+其中：
+- $d_v = d_k = head_{dim}$
+- $d_{model} = heads \times head_{dim}$ \
+
+在传统的Transformer模型中
+- $d_v = d_k = head_{dim} = 64$
+- $d_model = 512$
+- $heads = 8$
+
+对于多头注意力，需要一个额外的矩阵$W_{output}$将注意力机制输出的8个多头结果线性变换回$512 \times 512$的矩阵
+
+#### 初始化
+在初始化阶段，多头注意力和单头注意力机制基本相同，只是需要增加一个额外的$W_{output}$矩阵
+
+#### 计算
+计算部分相较于单头注意力复杂得多\
+在将参数矩阵与输入$x$相乘后，需要将$Q, K, V$进行拆分
+- 相乘后的$Q, K, V$矩阵结构为：***[ batch_size, seq_len, d_model ]***
+- 将其拆分为 ***[ batch_size, seq_len, head_num, head_dim ]***
+
+同时为了进行并行计算，根据***Attention***算法，矩阵$Q$需要和$K^T$相乘，而当下的矩阵结构不支持矩阵乘法，因此需要交换矩阵的第二维和第三维\
+之后便可进行$Attention(Q,K,V)$的计算了
 
 ### 前馈神经网络（FNN）
 前馈神经网络在Transformer模型中起到重要作用，也是最简单实现的一部分，它的作用主要是提取文本语义。该神经网络的结构十分简单，是一个含有两个2048维隐藏层的全连接前馈神经网络，输入与输出则均为512维。
